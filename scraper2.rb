@@ -1,12 +1,10 @@
 require "scraperwiki"
 require "date"
 require "rubygems"
-require "pp"
 require "bundler/setup"
 require "capybara"
 require "capybara/dsl"
 require "capybara-webkit"
-
 
 $base_url = "https://apply.hobartcity.com.au"
 $full_url = "#{$base_url}/Pages/XC.Track/SearchApplication.aspx?d=thismonth&k=LodgementDate&t=PLN"
@@ -45,7 +43,6 @@ class Spider
   def get_data
     address_data = all(:xpath, $main_xpath + '//a[@style="text-decoration:none; color:gray;"]/span[@style="font-size:larger; font-weight:bold;"]').map(&:text)
     urls_data = all(:xpath, $main_xpath + '//a[@style="text-decoration:none; color:gray;"]').map { |x| x[:href] }
-    
     [address_data, urls_data]
   end
 
@@ -71,13 +68,14 @@ end
 
 spider = Spider.new
 results = spider.get_results
-# p results
 puts "There are #{results.size} records." 
 
 if results.size > 0
+  # save the first item to create a table if it doesn't exist
+  # if a record with a given id already exists then it'll be updated, id will remain the same
   first_item = results[0]
   ScraperWiki.save_sqlite(["council_reference"], first_item)
-  puts "Saved " + first_item["council_reference"]
+  puts "Saved or updated record " + first_item["council_reference"]
 
   results[1..-1].each do |item|
     if ScraperWiki.select("* from swdata where `council_reference`='#{item['council_reference']}'").empty? 
