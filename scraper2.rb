@@ -86,5 +86,5 @@ if results.size > 0
     end
   end
 else
-  puts "There are no data to save"
+  puts "There is no data to save"
 end
